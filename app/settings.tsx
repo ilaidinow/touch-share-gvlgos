@@ -8,8 +8,11 @@ import { router } from 'expo-router';
 
 export default function SettingsScreen() {
   const [isDiscoverable, setIsDiscoverable] = useState(true);
-  const [autoAcceptFiles, setAutoAcceptFiles] = useState(false);
+  const [autoShare, setAutoShare] = useState(false);
   const [sharePhoneNumber, setSharePhoneNumber] = useState(true);
+  const [shareProfilePicture, setShareProfilePicture] = useState(true);
+  const [vibrationEnabled, setVibrationEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(true);
 
   const handleBack = () => {
     router.back();
@@ -18,7 +21,7 @@ export default function SettingsScreen() {
   const handleClearData = () => {
     Alert.alert(
       'Clear Data',
-      'This will clear all app data including saved files and preferences. Are you sure?',
+      'This will clear your saved phone number and profile picture. Are you sure?',
       [
         { text: 'Cancel', style: 'cancel' },
         { text: 'Clear', style: 'destructive', onPress: () => {
@@ -29,20 +32,36 @@ export default function SettingsScreen() {
     );
   };
 
+  const handleNFCSettings = () => {
+    Alert.alert(
+      'NFC Settings',
+      'To enable or disable NFC, please go to your device settings.',
+      [
+        { text: 'OK' }
+      ]
+    );
+  };
+
   const SettingRow = ({ 
     title, 
     subtitle, 
     value, 
     onValueChange, 
-    type = 'switch' 
+    type = 'switch',
+    onPress
   }: {
     title: string;
     subtitle?: string;
     value?: boolean;
     onValueChange?: (value: boolean) => void;
     type?: 'switch' | 'button';
+    onPress?: () => void;
   }) => (
-    <View style={[commonStyles.card, { marginBottom: 12 }]}>
+    <TouchableOpacity 
+      style={[commonStyles.card, { marginBottom: 12 }]}
+      onPress={type === 'button' ? onPress : undefined}
+      disabled={type === 'switch'}
+    >
       <View style={commonStyles.row}>
         <View style={{ flex: 1 }}>
           <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: subtitle ? 4 : 0 }]}>
@@ -62,8 +81,11 @@ export default function SettingsScreen() {
             thumbColor={colors.background}
           />
         )}
+        {type === 'button' && (
+          <Ionicons name="chevron-forward" size={24} color={colors.textSecondary} />
+        )}
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (
@@ -92,28 +114,68 @@ export default function SettingsScreen() {
       >
         <View style={{ marginBottom: 32 }}>
           <Text style={[commonStyles.textSecondary, { textAlign: 'left', marginBottom: 16 }]}>
-            SHARING PREFERENCES
+            NFC SHARING
           </Text>
           
           <SettingRow
             title="Make Device Discoverable"
-            subtitle="Allow other devices to find and connect to your device"
+            subtitle="Allow other devices to detect your device via NFC"
             value={isDiscoverable}
             onValueChange={setIsDiscoverable}
           />
 
           <SettingRow
-            title="Auto-Accept Files"
-            subtitle="Automatically accept incoming files from trusted devices"
-            value={autoAcceptFiles}
-            onValueChange={setAutoAcceptFiles}
+            title="Auto Share"
+            subtitle="Automatically share when NFC contact is detected"
+            value={autoShare}
+            onValueChange={setAutoShare}
           />
 
           <SettingRow
+            title="NFC Settings"
+            subtitle="Configure NFC in device settings"
+            type="button"
+            onPress={handleNFCSettings}
+          />
+        </View>
+
+        <View style={{ marginBottom: 32 }}>
+          <Text style={[commonStyles.textSecondary, { textAlign: 'left', marginBottom: 16 }]}>
+            CONTACT INFORMATION
+          </Text>
+          
+          <SettingRow
             title="Share Phone Number"
-            subtitle="Include your phone number when sharing with other devices"
+            subtitle="Include your phone number when sharing contact info"
             value={sharePhoneNumber}
             onValueChange={setSharePhoneNumber}
+          />
+
+          <SettingRow
+            title="Share Profile Picture"
+            subtitle="Include your profile picture when sharing contact info"
+            value={shareProfilePicture}
+            onValueChange={setShareProfilePicture}
+          />
+        </View>
+
+        <View style={{ marginBottom: 32 }}>
+          <Text style={[commonStyles.textSecondary, { textAlign: 'left', marginBottom: 16 }]}>
+            NOTIFICATIONS
+          </Text>
+          
+          <SettingRow
+            title="Vibration"
+            subtitle="Vibrate when contact is shared"
+            value={vibrationEnabled}
+            onValueChange={setVibrationEnabled}
+          />
+
+          <SettingRow
+            title="Sound"
+            subtitle="Play sound when contact is shared"
+            value={soundEnabled}
+            onValueChange={setSoundEnabled}
           />
         </View>
 
@@ -142,7 +204,7 @@ export default function SettingsScreen() {
                   Device ID
                 </Text>
                 <Text style={[commonStyles.textSecondary, { textAlign: 'left' }]}>
-                  SD-{Math.random().toString(36).substr(2, 8).toUpperCase()}
+                  NFC-{Math.random().toString(36).substr(2, 8).toUpperCase()}
                 </Text>
               </View>
             </View>
@@ -159,7 +221,7 @@ export default function SettingsScreen() {
             onPress={handleClearData}
           >
             <Text style={[buttonStyles.textSecondary, { color: colors.error }]}>
-              Clear All Data
+              Clear Contact Data
             </Text>
           </TouchableOpacity>
         </View>

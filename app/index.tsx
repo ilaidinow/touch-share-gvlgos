@@ -5,29 +5,29 @@ import { commonStyles, colors, buttonStyles } from '../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import * as Contacts from 'expo-contacts';
-import SimpleBottomSheet from '../components/BottomSheet';
-import DeviceDiscovery from '../components/DeviceDiscovery';
-import FileShareSheet from '../components/FileShareSheet';
+import * as ImagePicker from 'expo-image-picker';
+import NFCContactSheet from '../components/NFCContactSheet';
 import PhoneNumberCard from '../components/PhoneNumberCard';
+import ProfilePictureCard from '../components/ProfilePictureCard';
+import ContactAnimation from '../components/ContactAnimation';
 
 export default function MainScreen() {
-  const [isDiscoveryVisible, setIsDiscoveryVisible] = useState(false);
-  const [isFileShareVisible, setIsFileShareVisible] = useState(false);
+  const [isNFCSheetVisible, setIsNFCSheetVisible] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
-  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
-  const [isScanning, setIsScanning] = useState(false);
+  const [profilePicture, setProfilePicture] = useState<string | null>(null);
+  const [isNFCActive, setIsNFCActive] = useState(false);
+  const [sharePhoneNumber, setSharePhoneNumber] = useState(true);
+  const [shareProfilePicture, setShareProfilePicture] = useState(true);
+  const [showContactAnimation, setShowContactAnimation] = useState(false);
 
   useEffect(() => {
     loadPhoneNumber();
+    loadProfilePicture();
   }, []);
 
   const loadPhoneNumber = async () => {
     try {
-      // Try to get phone number from contacts (user's own contact)
       const { status } = await Contacts.requestPermissionsAsync();
       if (status === 'granted') {
         // For demo purposes, we'll use a placeholder
@@ -40,41 +40,78 @@ export default function MainScreen() {
     }
   };
 
-  const handleStartSharing = () => {
-    console.log('Starting device discovery');
-    setIsDiscoveryVisible(true);
-    setIsScanning(true);
+  const loadProfilePicture = () => {
+    // Load saved profile picture from storage if available
+    // For demo, we'll start with null
+    console.log('Loading profile picture from storage');
   };
 
-  const handleSelectFiles = async () => {
+  const handleStartNFC = () => {
+    console.log('Starting NFC sharing');
+    setIsNFCSheetVisible(true);
+    setIsNFCActive(true);
+  };
+
+  const handleStopNFC = () => {
+    console.log('Stopping NFC sharing');
+    setIsNFCSheetVisible(false);
+    setIsNFCActive(false);
+  };
+
+  const handleNFCContact = () => {
+    console.log('NFC contact detected!');
+    setShowContactAnimation(true);
+    
+    // Hide animation after 3 seconds
+    setTimeout(() => {
+      setShowContactAnimation(false);
+    }, 3000);
+  };
+
+  const handleUpdatePhoneNumber = () => {
+    Alert.prompt(
+      'Update Phone Number',
+      'Enter your new phone number:',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Update', 
+          onPress: (text) => {
+            if (text) {
+              setPhoneNumber(text);
+              console.log('Phone number updated:', text);
+            }
+          }
+        }
+      ],
+      'plain-text',
+      phoneNumber
+    );
+  };
+
+  const handleUpdateProfilePicture = async () => {
     try {
-      const result = await DocumentPicker.getDocumentAsync({
-        multiple: true,
-        type: '*/*',
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Please grant permission to access your photos');
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
       });
 
-      if (!result.canceled && result.assets) {
-        setSelectedFiles(result.assets);
-        setIsFileShareVisible(true);
-        console.log('Selected files:', result.assets);
+      if (!result.canceled && result.assets[0]) {
+        setProfilePicture(result.assets[0].uri);
+        console.log('Profile picture updated:', result.assets[0].uri);
       }
     } catch (error) {
-      console.log('Error selecting files:', error);
-      Alert.alert('Error', 'Failed to select files');
+      console.log('Error updating profile picture:', error);
+      Alert.alert('Error', 'Failed to update profile picture');
     }
-  };
-
-  const handleShareFiles = () => {
-    if (selectedFiles.length > 0) {
-      setIsFileShareVisible(true);
-    } else {
-      handleSelectFiles();
-    }
-  };
-
-  const clearSelectedFiles = () => {
-    setSelectedFiles([]);
-    setIsFileShareVisible(false);
   };
 
   const handleSettings = () => {
@@ -119,103 +156,148 @@ export default function MainScreen() {
               <Ionicons name="phone-portrait" size={60} color={colors.background} />
             </View>
             
-            <Text style={commonStyles.title}>ShareDrop</Text>
+            <Text style={commonStyles.title}>NFC Contact</Text>
             <Text style={commonStyles.textSecondary}>
-              Share files and contact info when devices are nearby
+              Touch phones together to exchange contact information
             </Text>
           </View>
 
-          {/* Phone Number Card */}
-          <PhoneNumberCard phoneNumber={phoneNumber} />
+          {/* Profile Picture Card */}
+          <ProfilePictureCard 
+            profilePicture={profilePicture}
+            onUpdate={handleUpdateProfilePicture}
+            isEnabled={shareProfilePicture}
+          />
 
-          {/* Action Buttons */}
+          {/* Phone Number Card */}
+          <PhoneNumberCard 
+            phoneNumber={phoneNumber} 
+            onUpdate={handleUpdatePhoneNumber}
+            isEnabled={sharePhoneNumber}
+          />
+
+          {/* Sharing Options */}
+          <View style={[commonStyles.section, { marginBottom: 16 }]}>
+            <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
+              What to share:
+            </Text>
+            
+            <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
+              <TouchableOpacity
+                style={[
+                  buttonStyles.secondary,
+                  { 
+                    flex: 1,
+                    backgroundColor: sharePhoneNumber ? colors.primary : colors.backgroundAlt,
+                  }
+                ]}
+                onPress={() => setSharePhoneNumber(!sharePhoneNumber)}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons 
+                    name="call" 
+                    size={20} 
+                    color={sharePhoneNumber ? colors.background : colors.text} 
+                  />
+                  <Text style={[
+                    buttonStyles.textSecondary,
+                    { color: sharePhoneNumber ? colors.background : colors.text }
+                  ]}>
+                    Phone
+                  </Text>
+                </View>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  buttonStyles.secondary,
+                  { 
+                    flex: 1,
+                    backgroundColor: shareProfilePicture ? colors.primary : colors.backgroundAlt,
+                  }
+                ]}
+                onPress={() => setShareProfilePicture(!shareProfilePicture)}
+              >
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  <Ionicons 
+                    name="person" 
+                    size={20} 
+                    color={shareProfilePicture ? colors.background : colors.text} 
+                  />
+                  <Text style={[
+                    buttonStyles.textSecondary,
+                    { color: shareProfilePicture ? colors.background : colors.text }
+                  ]}>
+                    Photo
+                  </Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* NFC Action Button */}
           <View style={[commonStyles.section, { gap: 16 }]}>
             <TouchableOpacity
-              style={[buttonStyles.primary, { width: '100%' }]}
-              onPress={handleStartSharing}
+              style={[
+                buttonStyles.primary, 
+                { 
+                  width: '100%',
+                  backgroundColor: isNFCActive ? colors.success : colors.primary,
+                }
+              ]}
+              onPress={isNFCActive ? handleStopNFC : handleStartNFC}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Ionicons name="wifi" size={24} color={colors.background} />
-                <Text style={buttonStyles.text}>Start Sharing</Text>
+                <Ionicons 
+                  name={isNFCActive ? "stop-circle" : "radio"} 
+                  size={24} 
+                  color={colors.background} 
+                />
+                <Text style={buttonStyles.text}>
+                  {isNFCActive ? 'Stop NFC Sharing' : 'Start NFC Sharing'}
+                </Text>
               </View>
             </TouchableOpacity>
 
+            {/* Test Contact Button (for demo) */}
             <TouchableOpacity
               style={[buttonStyles.secondary, { width: '100%' }]}
-              onPress={handleShareFiles}
+              onPress={handleNFCContact}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Ionicons name="document" size={24} color={colors.text} />
+                <Ionicons name="flash" size={24} color={colors.text} />
                 <Text style={buttonStyles.textSecondary}>
-                  {selectedFiles.length > 0 ? `Share ${selectedFiles.length} Files` : 'Select Files'}
+                  Test Contact Animation
                 </Text>
               </View>
             </TouchableOpacity>
           </View>
-
-          {/* Selected Files Preview */}
-          {selectedFiles.length > 0 && (
-            <View style={commonStyles.section}>
-              <Text style={commonStyles.subtitle}>Selected Files</Text>
-              {selectedFiles.slice(0, 3).map((file, index) => (
-                <View key={index} style={[commonStyles.card, { marginBottom: 8 }]}>
-                  <View style={commonStyles.row}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[commonStyles.text, { textAlign: 'left', marginBottom: 4 }]}>
-                        {file.name}
-                      </Text>
-                      <Text style={[commonStyles.textSecondary, { textAlign: 'left' }]}>
-                        {(file.size / 1024 / 1024).toFixed(2)} MB
-                      </Text>
-                    </View>
-                    <Ionicons name="document-outline" size={24} color={colors.textSecondary} />
-                  </View>
-                </View>
-              ))}
-              {selectedFiles.length > 3 && (
-                <Text style={commonStyles.textSecondary}>
-                  +{selectedFiles.length - 3} more files
-                </Text>
-              )}
-              <TouchableOpacity
-                onPress={clearSelectedFiles}
-                style={{ marginTop: 12 }}
-              >
-                <Text style={[commonStyles.textSecondary, { color: colors.error }]}>
-                  Clear Selection
-                </Text>
-              </TouchableOpacity>
-            </View>
-          )}
 
           {/* Instructions */}
           <View style={[commonStyles.section, { marginTop: 'auto', marginBottom: 40 }]}>
             <Text style={commonStyles.textSecondary}>
-              Bring devices close together to share files and contact information
+              {isNFCActive 
+                ? 'Ready to share! Touch another phone with NFC Contact open'
+                : 'Tap "Start NFC Sharing" then touch phones together'
+              }
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      {/* Device Discovery Bottom Sheet */}
-      <DeviceDiscovery
-        isVisible={isDiscoveryVisible}
-        onClose={() => {
-          setIsDiscoveryVisible(false);
-          setIsScanning(false);
-        }}
-        isScanning={isScanning}
-        selectedFiles={selectedFiles}
-        phoneNumber={phoneNumber}
+      {/* NFC Contact Sheet */}
+      <NFCContactSheet
+        isVisible={isNFCSheetVisible}
+        onClose={handleStopNFC}
+        phoneNumber={sharePhoneNumber ? phoneNumber : null}
+        profilePicture={shareProfilePicture ? profilePicture : null}
+        onContact={handleNFCContact}
       />
 
-      {/* File Share Bottom Sheet */}
-      <FileShareSheet
-        isVisible={isFileShareVisible}
-        onClose={() => setIsFileShareVisible(false)}
-        files={selectedFiles}
-        onSelectFiles={handleSelectFiles}
-      />
+      {/* Contact Animation Overlay */}
+      {showContactAnimation && (
+        <ContactAnimation onComplete={() => setShowContactAnimation(false)} />
+      )}
     </SafeAreaView>
   );
 }

@@ -16,7 +16,6 @@ interface DeviceDiscoveryProps {
   isVisible: boolean;
   onClose: () => void;
   isScanning: boolean;
-  selectedFiles: any[];
   phoneNumber: string;
 }
 
@@ -24,7 +23,6 @@ export default function DeviceDiscovery({
   isVisible, 
   onClose, 
   isScanning, 
-  selectedFiles, 
   phoneNumber 
 }: DeviceDiscoveryProps) {
   const [discoveredDevices, setDiscoveredDevices] = useState<Device[]>([]);
@@ -52,12 +50,12 @@ export default function DeviceDiscovery({
     console.log('Connecting to device:', device.name);
     setIsTransferring(true);
 
-    // Simulate file transfer
+    // Simulate contact transfer
     setTimeout(() => {
       setIsTransferring(false);
       Alert.alert(
         'Transfer Complete',
-        `Successfully shared ${selectedFiles.length > 0 ? selectedFiles.length + ' files' : 'phone number'} with ${device.name}`,
+        `Successfully shared contact information with ${device.name}`,
         [{ text: 'OK', onPress: onClose }]
       );
     }, 3000);
@@ -103,7 +101,7 @@ export default function DeviceDiscovery({
           <View style={[commonStyles.center, { paddingVertical: 40 }]}>
             <ActivityIndicator size="large" color={colors.primary} />
             <Text style={[commonStyles.text, { marginTop: 16 }]}>
-              Transferring...
+              Sharing contact information...
             </Text>
           </View>
         ) : (
@@ -115,7 +113,7 @@ export default function DeviceDiscovery({
                   Scanning for nearby devices...
                 </Text>
                 <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
-                  Make sure other devices have ShareDrop open
+                  Make sure other devices have NFC Contact open
                 </Text>
               </View>
             ) : (
@@ -164,7 +162,7 @@ export default function DeviceDiscovery({
                       No devices found
                     </Text>
                     <Text style={[commonStyles.textSecondary, { marginTop: 8 }]}>
-                      Make sure other devices are nearby and have ShareDrop open
+                      Make sure other devices are nearby and have NFC Contact open
                     </Text>
                   </View>
                 )}
@@ -173,16 +171,14 @@ export default function DeviceDiscovery({
           </>
         )}
 
-        {selectedFiles.length > 0 && !isTransferring && (
-          <View style={{ marginTop: 20, padding: 16, backgroundColor: colors.backgroundAlt, borderRadius: 12 }}>
-            <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>
-              Ready to share:
-            </Text>
-            <Text style={commonStyles.text}>
-              {selectedFiles.length} file{selectedFiles.length !== 1 ? 's' : ''} + Phone number
-            </Text>
-          </View>
-        )}
+        <View style={{ marginTop: 20, padding: 16, backgroundColor: colors.backgroundAlt, borderRadius: 12 }}>
+          <Text style={[commonStyles.textSecondary, { marginBottom: 8 }]}>
+            Ready to share:
+          </Text>
+          <Text style={commonStyles.text}>
+            Phone number: {phoneNumber}
+          </Text>
+        </View>
       </View>
     </SimpleBottomSheet>
   );
