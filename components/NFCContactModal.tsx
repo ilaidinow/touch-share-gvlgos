@@ -9,6 +9,8 @@ import NfcManager, { NfcTech, Ndef } from 'react-native-nfc-manager';
 interface NFCContactModalProps {
   isVisible: boolean;
   onClose: () => void;
+  firstName: string | null;
+  lastName: string | null;
   phoneNumber: string | null;
   profilePicture: string | null;
   onContact: () => void;
@@ -17,6 +19,8 @@ interface NFCContactModalProps {
 export default function NFCContactModal({ 
   isVisible, 
   onClose, 
+  firstName,
+  lastName,
   phoneNumber,
   profilePicture,
   onContact
@@ -95,6 +99,8 @@ export default function NFCContactModal({
       
       // Create contact data
       const contactData = {
+        firstName: firstName,
+        lastName: lastName,
         phoneNumber: phoneNumber,
         profilePicture: profilePicture,
         timestamp: new Date().toISOString(),
@@ -139,6 +145,8 @@ export default function NFCContactModal({
       handleNFCDetected();
     }
   };
+
+  const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName;
 
   return (
     <CenteredModal isVisible={isVisible} onClose={onClose}>
@@ -254,6 +262,20 @@ export default function NFCContactModal({
           </Text>
           
           <View style={{ gap: 12 }}>
+            {fullName && (
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                gap: 12,
+                justifyContent: 'center',
+              }}>
+                <Ionicons name="person" size={20} color={theme.success} />
+                <Text style={{ fontSize: 17, color: theme.text }}>
+                  {fullName}
+                </Text>
+              </View>
+            )}
+
             {phoneNumber && (
               <View style={{ 
                 flexDirection: 'row', 
@@ -275,14 +297,14 @@ export default function NFCContactModal({
                 gap: 12,
                 justifyContent: 'center',
               }}>
-                <Ionicons name="person" size={20} color={theme.success} />
+                <Ionicons name="image" size={20} color={theme.success} />
                 <Text style={{ fontSize: 17, color: theme.text }}>
                   Profile Picture
                 </Text>
               </View>
             )}
             
-            {!phoneNumber && !profilePicture && (
+            {!fullName && !phoneNumber && !profilePicture && (
               <Text style={{
                 fontSize: 15,
                 color: theme.textSecondary,

@@ -5,15 +5,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useTheme } from '../contexts/ThemeContext';
 import { createStyles } from '../styles/commonStyles';
 
-interface PhoneNumberCardProps {
-  phoneNumber: string;
+interface NameCardProps {
+  firstName: string;
+  lastName: string;
   onUpdate: () => void;
   isEnabled: boolean;
 }
 
-export default function PhoneNumberCard({ phoneNumber, onUpdate, isEnabled }: PhoneNumberCardProps) {
+export default function NameCard({ firstName, lastName, onUpdate, isEnabled }: NameCardProps) {
   const { theme } = useTheme();
   const { commonStyles } = createStyles(theme);
+
+  const displayName = firstName || lastName 
+    ? `${firstName} ${lastName}`.trim()
+    : 'Not set';
 
   return (
     <View style={[commonStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
@@ -27,14 +32,14 @@ export default function PhoneNumberCard({ phoneNumber, onUpdate, isEnabled }: Ph
             alignItems: 'center',
             justifyContent: 'center',
           }}>
-            <Ionicons name="call" size={20} color={theme.primary} />
+            <Ionicons name="person" size={20} color={theme.primary} />
           </View>
           <Text style={{
             fontSize: 17,
             fontWeight: '600',
             color: theme.text,
           }}>
-            Phone Number
+            Name
           </Text>
         </View>
         
@@ -44,13 +49,13 @@ export default function PhoneNumberCard({ phoneNumber, onUpdate, isEnabled }: Ph
             paddingHorizontal: 12,
             paddingVertical: 6,
             borderRadius: 8,
-            backgroundColor: theme.primary,
+            backgroundColor: theme.backgroundAlt,
           }}
         >
           <Text style={{
             fontSize: 14,
             fontWeight: '500',
-            color: theme.background,
+            color: theme.text,
           }}>
             Edit
           </Text>
@@ -63,7 +68,7 @@ export default function PhoneNumberCard({ phoneNumber, onUpdate, isEnabled }: Ph
         color: theme.text,
         marginBottom: 8,
       }}>
-        {phoneNumber || 'Not set'}
+        {displayName}
       </Text>
       
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
