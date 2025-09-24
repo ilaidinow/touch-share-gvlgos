@@ -1,8 +1,9 @@
 
-import React from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { commonStyles, colors } from '../styles/commonStyles';
+import { useTheme } from '../contexts/ThemeContext';
+import { createStyles } from '../styles/commonStyles';
 
 interface ProfilePictureCardProps {
   profilePicture: string | null;
@@ -10,65 +11,92 @@ interface ProfilePictureCardProps {
   isEnabled: boolean;
 }
 
-export default function ProfilePictureCard({ 
-  profilePicture, 
-  onUpdate, 
-  isEnabled 
-}: ProfilePictureCardProps) {
+export default function ProfilePictureCard({ profilePicture, onUpdate, isEnabled }: ProfilePictureCardProps) {
+  const { theme } = useTheme();
+  const { commonStyles } = createStyles(theme);
+
   return (
-    <View style={[commonStyles.section, { marginBottom: 16 }]}>
-      <View style={[
-        commonStyles.card,
-        { opacity: isEnabled ? 1 : 0.5 }
-      ]}>
-        <View style={commonStyles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={[commonStyles.textSecondary, { textAlign: 'left', marginBottom: 4 }]}>
-              Profile Picture
-            </Text>
-            <Text style={[commonStyles.text, { textAlign: 'left' }]}>
-              {profilePicture ? 'Picture set' : 'No picture set'}
-            </Text>
+    <View style={[commonStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: theme.primary + '20',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Ionicons name="person" size={20} color={theme.primary} />
           </View>
-          
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            {/* Profile picture preview */}
-            <View style={{
-              width: 48,
-              height: 48,
-              borderRadius: 24,
-              backgroundColor: colors.backgroundAlt,
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-            }}>
-              {profilePicture ? (
-                <Image 
-                  source={{ uri: profilePicture }} 
-                  style={{ width: 48, height: 48, borderRadius: 24 }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Ionicons name="person" size={24} color={colors.textSecondary} />
-              )}
-            </View>
-            
-            {/* Update button */}
-            <TouchableOpacity
-              onPress={onUpdate}
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                backgroundColor: colors.backgroundAlt,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Ionicons name="camera" size={24} color={colors.text} />
-            </TouchableOpacity>
-          </View>
+          <Text style={{
+            fontSize: 17,
+            fontWeight: '600',
+            color: theme.text,
+          }}>
+            Profile Picture
+          </Text>
         </View>
+        
+        <TouchableOpacity
+          onPress={onUpdate}
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+            backgroundColor: theme.backgroundAlt,
+          }}
+        >
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '500',
+            color: theme.text,
+          }}>
+            {profilePicture ? 'Change' : 'Add'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+      
+      <View style={{ alignItems: 'center', marginBottom: 16 }}>
+        {profilePicture ? (
+          <Image
+            source={{ uri: profilePicture }}
+            style={{
+              width: 80,
+              height: 80,
+              borderRadius: 40,
+            }}
+          />
+        ) : (
+          <View style={{
+            width: 80,
+            height: 80,
+            borderRadius: 40,
+            backgroundColor: theme.backgroundAlt,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 2,
+            borderColor: theme.border,
+            borderStyle: 'dashed',
+          }}>
+            <Ionicons name="camera" size={32} color={theme.textSecondary} />
+          </View>
+        )}
+      </View>
+      
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, justifyContent: 'center' }}>
+        <View style={{
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: isEnabled ? theme.success : theme.grey,
+        }} />
+        <Text style={{
+          fontSize: 15,
+          color: theme.textSecondary,
+        }}>
+          {isEnabled ? 'Will be shared' : 'Not sharing'}
+        </Text>
       </View>
     </View>
   );

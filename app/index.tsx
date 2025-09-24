@@ -1,19 +1,23 @@
 
 import React, { useState, useEffect } from 'react';
 import { Text, View, TouchableOpacity, ScrollView, Alert, Platform } from 'react-native';
-import { commonStyles, colors, buttonStyles } from '../styles/commonStyles';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import * as Contacts from 'expo-contacts';
 import * as ImagePicker from 'expo-image-picker';
-import NFCContactSheet from '../components/NFCContactSheet';
+import { useTheme } from '../contexts/ThemeContext';
+import { createStyles } from '../styles/commonStyles';
+import NFCContactModal from '../components/NFCContactModal';
 import PhoneNumberCard from '../components/PhoneNumberCard';
 import ProfilePictureCard from '../components/ProfilePictureCard';
 import ContactAnimation from '../components/ContactAnimation';
 
 export default function MainScreen() {
-  const [isNFCSheetVisible, setIsNFCSheetVisible] = useState(false);
+  const { theme } = useTheme();
+  const { commonStyles, buttonStyles } = createStyles(theme);
+  
+  const [isNFCModalVisible, setIsNFCModalVisible] = useState(false);
   const [phoneNumber, setPhoneNumber] = useState<string>('');
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
   const [isNFCActive, setIsNFCActive] = useState(false);
@@ -48,13 +52,13 @@ export default function MainScreen() {
 
   const handleStartNFC = () => {
     console.log('Starting NFC sharing');
-    setIsNFCSheetVisible(true);
+    setIsNFCModalVisible(true);
     setIsNFCActive(true);
   };
 
   const handleStopNFC = () => {
     console.log('Stopping NFC sharing');
-    setIsNFCSheetVisible(false);
+    setIsNFCModalVisible(false);
     setIsNFCActive(false);
   };
 
@@ -119,7 +123,7 @@ export default function MainScreen() {
   };
 
   return (
-    <SafeAreaView style={commonStyles.container}>
+    <SafeAreaView style={[commonStyles.container, { backgroundColor: theme.background }]}>
       {/* Header with Settings */}
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', padding: 20, paddingBottom: 0 }}>
         <TouchableOpacity
@@ -128,12 +132,12 @@ export default function MainScreen() {
             width: 44,
             height: 44,
             borderRadius: 22,
-            backgroundColor: colors.backgroundAlt,
+            backgroundColor: theme.backgroundAlt,
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="settings-outline" size={24} color={colors.text} />
+          <Ionicons name="settings-outline" size={24} color={theme.text} />
         </TouchableOpacity>
       </View>
 
@@ -148,16 +152,16 @@ export default function MainScreen() {
               width: 120,
               height: 120,
               borderRadius: 60,
-              backgroundColor: colors.primary,
+              backgroundColor: theme.primary,
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: 24,
             }}>
-              <Ionicons name="phone-portrait" size={60} color={colors.background} />
+              <Ionicons name="phone-portrait" size={60} color={theme.background} />
             </View>
             
-            <Text style={commonStyles.title}>NFC Contact</Text>
-            <Text style={commonStyles.textSecondary}>
+            <Text style={[commonStyles.title, { color: theme.text }]}>ContactBeam</Text>
+            <Text style={[commonStyles.textSecondary, { color: theme.textSecondary }]}>
               Touch phones together to exchange contact information
             </Text>
           </View>
@@ -178,7 +182,7 @@ export default function MainScreen() {
 
           {/* Sharing Options */}
           <View style={[commonStyles.section, { marginBottom: 16 }]}>
-            <Text style={[commonStyles.textSecondary, { marginBottom: 16 }]}>
+            <Text style={[commonStyles.textSecondary, { marginBottom: 16, color: theme.textSecondary }]}>
               What to share:
             </Text>
             
@@ -188,7 +192,7 @@ export default function MainScreen() {
                   buttonStyles.secondary,
                   { 
                     flex: 1,
-                    backgroundColor: sharePhoneNumber ? colors.primary : colors.backgroundAlt,
+                    backgroundColor: sharePhoneNumber ? theme.primary : theme.backgroundAlt,
                   }
                 ]}
                 onPress={() => setSharePhoneNumber(!sharePhoneNumber)}
@@ -197,11 +201,11 @@ export default function MainScreen() {
                   <Ionicons 
                     name="call" 
                     size={20} 
-                    color={sharePhoneNumber ? colors.background : colors.text} 
+                    color={sharePhoneNumber ? theme.background : theme.text} 
                   />
                   <Text style={[
                     buttonStyles.textSecondary,
-                    { color: sharePhoneNumber ? colors.background : colors.text }
+                    { color: sharePhoneNumber ? theme.background : theme.text }
                   ]}>
                     Phone
                   </Text>
@@ -213,7 +217,7 @@ export default function MainScreen() {
                   buttonStyles.secondary,
                   { 
                     flex: 1,
-                    backgroundColor: shareProfilePicture ? colors.primary : colors.backgroundAlt,
+                    backgroundColor: shareProfilePicture ? theme.primary : theme.backgroundAlt,
                   }
                 ]}
                 onPress={() => setShareProfilePicture(!shareProfilePicture)}
@@ -222,11 +226,11 @@ export default function MainScreen() {
                   <Ionicons 
                     name="person" 
                     size={20} 
-                    color={shareProfilePicture ? colors.background : colors.text} 
+                    color={shareProfilePicture ? theme.background : theme.text} 
                   />
                   <Text style={[
                     buttonStyles.textSecondary,
-                    { color: shareProfilePicture ? colors.background : colors.text }
+                    { color: shareProfilePicture ? theme.background : theme.text }
                   ]}>
                     Photo
                   </Text>
@@ -242,7 +246,7 @@ export default function MainScreen() {
                 buttonStyles.primary, 
                 { 
                   width: '100%',
-                  backgroundColor: isNFCActive ? colors.success : colors.primary,
+                  backgroundColor: isNFCActive ? theme.success : theme.primary,
                 }
               ]}
               onPress={isNFCActive ? handleStopNFC : handleStartNFC}
@@ -251,9 +255,9 @@ export default function MainScreen() {
                 <Ionicons 
                   name={isNFCActive ? "stop-circle" : "radio"} 
                   size={24} 
-                  color={colors.background} 
+                  color={theme.background} 
                 />
-                <Text style={buttonStyles.text}>
+                <Text style={[buttonStyles.text, { color: theme.background }]}>
                   {isNFCActive ? 'Stop NFC Sharing' : 'Start NFC Sharing'}
                 </Text>
               </View>
@@ -261,12 +265,12 @@ export default function MainScreen() {
 
             {/* Test Contact Button (for demo) */}
             <TouchableOpacity
-              style={[buttonStyles.secondary, { width: '100%' }]}
+              style={[buttonStyles.secondary, { width: '100%', backgroundColor: theme.backgroundAlt }]}
               onPress={handleNFCContact}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <Ionicons name="flash" size={24} color={colors.text} />
-                <Text style={buttonStyles.textSecondary}>
+                <Ionicons name="flash" size={24} color={theme.text} />
+                <Text style={[buttonStyles.textSecondary, { color: theme.text }]}>
                   Test Contact Animation
                 </Text>
               </View>
@@ -275,9 +279,9 @@ export default function MainScreen() {
 
           {/* Instructions */}
           <View style={[commonStyles.section, { marginTop: 'auto', marginBottom: 40 }]}>
-            <Text style={commonStyles.textSecondary}>
+            <Text style={[commonStyles.textSecondary, { color: theme.textSecondary }]}>
               {isNFCActive 
-                ? 'Ready to share! Touch another phone with NFC Contact open'
+                ? 'Ready to share! Touch another phone with ContactBeam open'
                 : 'Tap "Start NFC Sharing" then touch phones together'
               }
             </Text>
@@ -285,9 +289,9 @@ export default function MainScreen() {
         </View>
       </ScrollView>
 
-      {/* NFC Contact Sheet */}
-      <NFCContactSheet
-        isVisible={isNFCSheetVisible}
+      {/* NFC Contact Modal */}
+      <NFCContactModal
+        isVisible={isNFCModalVisible}
         onClose={handleStopNFC}
         phoneNumber={sharePhoneNumber ? phoneNumber : null}
         profilePicture={shareProfilePicture ? profilePicture : null}

@@ -1,8 +1,9 @@
 
-import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
+import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
-import { commonStyles, colors } from '../styles/commonStyles';
+import { useTheme } from '../contexts/ThemeContext';
+import { createStyles } from '../styles/commonStyles';
 
 interface PhoneNumberCardProps {
   phoneNumber: string;
@@ -10,40 +11,74 @@ interface PhoneNumberCardProps {
   isEnabled: boolean;
 }
 
-export default function PhoneNumberCard({ 
-  phoneNumber, 
-  onUpdate, 
-  isEnabled 
-}: PhoneNumberCardProps) {
+export default function PhoneNumberCard({ phoneNumber, onUpdate, isEnabled }: PhoneNumberCardProps) {
+  const { theme } = useTheme();
+  const { commonStyles } = createStyles(theme);
+
   return (
-    <View style={[commonStyles.section, { marginBottom: 32 }]}>
-      <View style={[
-        commonStyles.card,
-        { opacity: isEnabled ? 1 : 0.5 }
-      ]}>
-        <View style={commonStyles.row}>
-          <View style={{ flex: 1 }}>
-            <Text style={[commonStyles.textSecondary, { textAlign: 'left', marginBottom: 4 }]}>
-              Your Phone Number
-            </Text>
-            <Text style={[commonStyles.text, { textAlign: 'left', fontSize: 20, fontWeight: '600' }]}>
-              {phoneNumber}
-            </Text>
+    <View style={[commonStyles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <View style={{
+            width: 40,
+            height: 40,
+            borderRadius: 20,
+            backgroundColor: theme.primary + '20',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Ionicons name="call" size={20} color={theme.primary} />
           </View>
-          <TouchableOpacity
-            onPress={onUpdate}
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 22,
-              backgroundColor: colors.backgroundAlt,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Ionicons name="create" size={24} color={colors.text} />
-          </TouchableOpacity>
+          <Text style={{
+            fontSize: 17,
+            fontWeight: '600',
+            color: theme.text,
+          }}>
+            Phone Number
+          </Text>
         </View>
+        
+        <TouchableOpacity
+          onPress={onUpdate}
+          style={{
+            paddingHorizontal: 12,
+            paddingVertical: 6,
+            borderRadius: 8,
+            backgroundColor: theme.backgroundAlt,
+          }}
+        >
+          <Text style={{
+            fontSize: 14,
+            fontWeight: '500',
+            color: theme.text,
+          }}>
+            Edit
+          </Text>
+        </TouchableOpacity>
+      </View>
+      
+      <Text style={{
+        fontSize: 19,
+        fontWeight: '500',
+        color: theme.text,
+        marginBottom: 8,
+      }}>
+        {phoneNumber || 'Not set'}
+      </Text>
+      
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: isEnabled ? theme.success : theme.grey,
+        }} />
+        <Text style={{
+          fontSize: 15,
+          color: theme.textSecondary,
+        }}>
+          {isEnabled ? 'Will be shared' : 'Not sharing'}
+        </Text>
       </View>
     </View>
   );
